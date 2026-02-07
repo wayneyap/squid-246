@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squid Calculator — 9-Player Game</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--surface:#1a1d27;--card:#222636;--border:#2e3348;
+  --text:#e0e0e8;--dim:#8888a0;--accent:#6c8cff;--green:#4cdb8a;
+  --red:#ff6b6b;--yellow:#ffd166;--magenta:#d68fff;--cyan:#66e0ff;
+}
+body{font-family:'SF Mono','Fira Code','Cascadia Code',monospace;background:var(--bg);color:var(--text);min-height:100vh;padding:0 0 40px}
+a{color:var(--accent)}
+
+/* Header */
+.header{background:linear-gradient(135deg,#1a1040,#0f1117 70%);border-bottom:1px solid var(--border);padding:24px 20px;text-align:center}
+.header h1{font-size:1.5rem;color:var(--accent);margin-bottom:4px}
+.header p{font-size:0.85rem;color:var(--dim)}
+
+/* Tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:2px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.tab{padding:8px 14px;border:none;background:transparent;color:var(--dim);cursor:pointer;font-family:inherit;font-size:0.78rem;border-radius:6px;transition:all .15s}
+.tab:hover{background:var(--card);color:var(--text)}
+.tab.active{background:var(--accent);color:#fff}
+
+/* Content */
+.content{max-width:900px;margin:0 auto;padding:20px 16px}
+.panel{display:none}
+.panel.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.card h2{font-size:1.1rem;color:var(--accent);margin-bottom:12px}
+.card h3{font-size:0.95rem;color:var(--cyan);margin:16px 0 8px}
+
+/* Inputs */
+.input-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.input-group{display:flex;flex-direction:column;gap:4px}
+.input-group label{font-size:0.75rem;color:var(--dim)}
+input[type=number],input[type=text]{
+  background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:8px 12px;border-radius:6px;font-family:inherit;font-size:0.9rem;width:100px;
+}
+input:focus{outline:none;border-color:var(--accent)}
+button.calc-btn{
+  background:var(--accent);color:#fff;border:none;padding:10px 20px;
+  border-radius:6px;cursor:pointer;font-family:inherit;font-size:0.85rem;
+  transition:opacity .15s;margin-top:auto;
+}
+button.calc-btn:hover{opacity:0.85}
+
+/* Results table */
+.rtable{width:100%;border-collapse:collapse;font-size:0.82rem;margin-top:8px}
+.rtable th{text-align:left;color:var(--dim);font-weight:normal;padding:6px 8px;border-bottom:1px solid var(--border)}
+.rtable td{padding:6px 8px;border-bottom:1px solid rgba(46,51,72,0.5)}
+.rtable tr:hover td{background:rgba(108,140,255,0.05)}
+.rtable .num{text-align:right;font-variant-numeric:tabular-nums}
+.rtable .highlight{color:var(--green);font-weight:bold}
+.rtable .neg{color:var(--red)}
+.rtable .thresh{color:var(--yellow)}
+
+/* Stat rows */
+.stat{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(46,51,72,0.4)}
+.stat .label{color:var(--dim);font-size:0.82rem}
+.stat .value{font-size:0.82rem;font-variant-numeric:tabular-nums}
+.stat .value.big{color:var(--green);font-weight:bold;font-size:0.95rem}
+
+/* Bar */
+.bar-container{display:flex;align-items:center;gap:8px;margin:3px 0;font-size:0.78rem}
+.bar-bg{flex:1;max-width:200px;height:16px;background:var(--bg);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.bar-label{min-width:70px;color:var(--dim)}
+.bar-pct{min-width:50px;text-align:right}
+.bar-earn{min-width:80px;text-align:right;color:var(--text)}
+
+/* Badge */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.7rem;font-weight:bold}
+.badge-green{background:rgba(76,219,138,0.15);color:var(--green)}
+.badge-red{background:rgba(255,107,107,0.15);color:var(--red)}
+.badge-yellow{background:rgba(255,209,102,0.15);color:var(--yellow)}
+.badge-cyan{background:rgba(102,224,255,0.15);color:var(--cyan)}
+
+/* Opp inputs */
+.opp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}
+.opp-grid input{width:100%;text-align:center}
+.opp-label{font-size:0.7rem;color:var(--dim);text-align:center}
+
+/* Threshold card */
+.thresh-card{border-left:3px solid var(--yellow);padding-left:16px;margin:12px 0}
+.thresh-card .jump{font-size:1.1rem;color:var(--green);font-weight:bold}
+
+/* Responsive */
+@media(max-width:600px){
+  .tabs{gap:1px;padding:6px 8px}
+  .tab{padding:6px 8px;font-size:0.7rem}
+  .opp-grid{grid-template-columns:repeat(2,1fr)}
+  .input-row{flex-direction:column;align-items:stretch}
+  input[type=number]{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Squid Calculator</h1>
+  <p>9 players &middot; 12 squids (N+3) &middot; New multipliers: 2x / 4x / 6x</p>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-tab="lookup">Lookup</button>
+  <button class="tab" data-tab="compare">Compare</button>
+  <button class="tab" data-tab="exact">Exact Game</button>
+  <button class="tab" data-tab="table">Reference</button>
+  <button class="tab" data-tab="threshold">Thresholds</button>
+  <button class="tab" data-tab="profit">Profit</button>
+  <button class="tab" data-tab="custom">Custom</button>
+</div>
+
+<div class="content">
+
+  <!-- TAB 1: LOOKUP -->
+  <div class="panel active" id="panel-lookup">
+    <div class="card">
+      <h2>Squid Count Lookup</h2>
+      <p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">Enter how many squids you have for a full breakdown.</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Your squids</label>
+          <input type="number" id="lookup-n" value="7" min="0" max="12">
+        </div>
+        <button class="calc-btn" onclick="doLookup()">Calculate</button>
+      </div>
+      <div id="lookup-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: COMPARE -->
+  <div class="panel" id="panel-compare">
+    <div class="card">
+      <h2>Compare Two Squid Counts</h2>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Count A</label>
+          <input type="number" id="cmp-a" value="4" min="0" max="12">
+        </div>
+        <div class="input-group">
+          <label>Count B</label>
+          <input type="number" id="cmp-b" value="7" min="0" max="12">
+        </div>
+        <button class="calc-btn" onclick="doCompare()">Compare</button>
+      </div>
+      <div id="compare-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: EXACT GAME -->
+  <div class="panel" id="panel-exact">
+    <div class="card">
+      <h2>Exact Game State</h2>
+      <p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">Enter your squid count and each opponent's count to calculate your exact earning.</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Your squids</label>
+          <input type="number" id="exact-you" value="7" min="0" max="12">
+        </div>
+      </div>
+      <p style="font-size:0.8rem;color:var(--dim);margin-bottom:4px">Opponent squid counts:</p>
+      <div class="opp-grid">
+        <div><div class="opp-label">Opp 1</div><input type="number" class="opp-input" value="2" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 2</div><input type="number" class="opp-input" value="1" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 3</div><input type="number" class="opp-input" value="1" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 4</div><input type="number" class="opp-input" value="1" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 5</div><input type="number" class="opp-input" value="0" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 6</div><input type="number" class="opp-input" value="0" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 7</div><input type="number" class="opp-input" value="0" min="0" max="12"></div>
+        <div><div class="opp-label">Opp 8</div><input type="number" class="opp-input" value="0" min="0" max="12"></div>
+      </div>
+      <button class="calc-btn" onclick="doExact()" style="margin-top:8px">Calculate</button>
+      <div id="exact-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: REFERENCE TABLE -->
+  <div class="panel" id="panel-table">
+    <div class="card">
+      <h2>Full Reference Table</h2>
+      <p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">Complete marginal value breakdown for all squid counts (9 players, 12 squids).</p>
+      <div id="table-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 5: THRESHOLDS -->
+  <div class="panel" id="panel-threshold">
+    <div class="card">
+      <h2>Multiplier Threshold Analysis</h2>
+      <p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">How much value each multiplier threshold creates.</p>
+      <div id="threshold-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 6: PROFIT -->
+  <div class="panel" id="panel-profit">
+    <div class="card">
+      <h2>Profit Analysis</h2>
+      <p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">Enter the cost per squid to see profitability at each count.</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Cost per squid ($)</label>
+          <input type="number" id="profit-cost" value="500" min="0">
+        </div>
+        <button class="calc-btn" onclick="doProfit()">Calculate</button>
+      </div>
+      <div id="profit-result"></div>
+    </div>
+  </div>
+
+  <!-- TAB 7: CUSTOM -->
+  <div class="panel" id="panel-custom">
+    <div class="card">
+      <h2>Custom Game Setup</h2>
+      <p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">Change the number of players or total squids.</p>
+      <div class="input-row">
+        <div class="input-group">
+          <label>Players</label>
+          <input type="number" id="custom-players" value="9" min="2" max="20">
+        </div>
+        <div class="input-group">
+          <label>Total squids</label>
+          <input type="number" id="custom-squids" value="12" min="1" max="30">
+        </div>
+        <button class="calc-btn" onclick="doCustom()">Calculate</button>
+      </div>
+      <div id="custom-result"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================
+// CORE MATH — Exact analytical formulas
+// ============================================================
+
+const PAYOUTS = {0:0,1:100,2:200,3:600,4:800,5:2000,6:2400,7:4200,8:4800};
+const OLD_PAYOUTS = {0:0,1:100,2:200,3:600,4:800,5:1500,6:1800,7:2800,8:3200};
+const MULT_LABELS = {0:'—',1:'1x',2:'1x',3:'2x',4:'2x',5:'4x',6:'4x',7:'6x',8:'6x'};
+
+let TOTAL_SQUIDS = 12;
+let NUM_PLAYERS = 9;
+let OTHER_PLAYERS = 8;
+
+function getPayout(n, table) {
+  table = table || PAYOUTS;
+  return table[Math.min(n, 8)] ?? table[8];
+}
+
+function getMarginal(n, table) {
+  if (n <= 0) return 0;
+  return getPayout(n, table) - getPayout(n - 1, table);
+}
+
+// Binomial coefficient
+function comb(n, k) {
+  if (k < 0 || k > n) return 0;
+  if (k === 0 || k === n) return 1;
+  if (k > n - k) k = n - k;
+  let r = 1;
+  for (let i = 0; i < k; i++) {
+    r = r * (n - i) / (i + 1);
+  }
+  return r;
+}
+
+/**
+ * Exact probability of z empty bins when distributing K balls into N bins.
+ * P(Z = z) = C(N,z) * sum_{i=0}^{N-z} (-1)^i * C(N-z,i) * ((N-z-i)/N)^K
+ */
+function probZeroCount(z, N, K) {
+  if (K <= 0) return z === N ? 1 : 0;
+  if (z > N) return 0;
+  if (z < Math.max(0, N - K)) return 0;
+  let occupied = N - z;
+  let sum = 0;
+  for (let i = 0; i <= occupied; i++) {
+    sum += Math.pow(-1, i) * comb(occupied, i) * Math.pow((occupied - i) / N, K);
+  }
+  return comb(N, z) * sum;
+}
+
+/** Get the full distribution of zeros and derived stats */
+function getStats(yourSquids, totalSq, numOpp) {
+  totalSq = totalSq ?? TOTAL_SQUIDS;
+  numOpp = numOpp ?? OTHER_PLAYERS;
+  const remaining = totalSq - yourSquids;
+  const pay = getPayout(yourSquids);
+
+  // Compute exact distribution of zeros among opponents
+  const zeroDist = [];
+  let meanZeros = 0;
+  let meanEarning = 0;
+  let variance = 0;
+
+  for (let z = 0; z <= numOpp; z++) {
+    const p = probZeroCount(z, numOpp, remaining);
+    zeroDist.push({ zeros: z, prob: p, earning: pay * z });
+    meanZeros += z * p;
+    meanEarning += pay * z * p;
+  }
+
+  for (let z = 0; z <= numOpp; z++) {
+    const e = pay * z;
+    variance += zeroDist[z].prob * Math.pow(e - meanEarning, 2);
+  }
+
+  const std = Math.sqrt(variance);
+  const guaranteedZeros = Math.max(0, numOpp - remaining);
+
+  // Compute percentiles from exact distribution
+  let cdf = 0;
+  let p5 = 0, p25 = 0, median = 0, p75 = 0, p95 = 0;
+  let minE = pay * numOpp, maxE = 0;
+  for (let z = 0; z <= numOpp; z++) {
+    const e = pay * z;
+    if (zeroDist[z].prob > 0) {
+      minE = Math.min(minE, e);
+      maxE = Math.max(maxE, e);
+    }
+    const prevCdf = cdf;
+    cdf += zeroDist[z].prob;
+    if (prevCdf < 0.05 && cdf >= 0.05) p5 = e;
+    if (prevCdf < 0.25 && cdf >= 0.25) p25 = e;
+    if (prevCdf < 0.50 && cdf >= 0.50) median = e;
+    if (prevCdf < 0.75 && cdf >= 0.75) p75 = e;
+    if (prevCdf < 0.95 && cdf >= 0.95) p95 = e;
+  }
+
+  return {
+    yourSquids, remaining, payout: pay, meanZeros, meanEarning, median,
+    std, p5, p25, p75, p95, minE, maxE, guaranteedZeros, zeroDist,
+    valPerSquid: yourSquids > 0 ? meanEarning / yourSquids : 0,
+  };
+}
+
+// ============================================================
+// FORMATTING HELPERS
+// ============================================================
+
+function fmt(n) {
+  if (n < 0) return '-$' + Math.abs(Math.round(n)).toLocaleString();
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function pct(n) { return (n * 100).toFixed(2) + '%'; }
+
+function badge(text, type) {
+  return `<span class="badge badge-${type}">${text}</span>`;
+}
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('tab')) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('panel-' + e.target.dataset.tab).classList.add('active');
+
+  // Auto-render static tabs
+  if (e.target.dataset.tab === 'table') doTable();
+  if (e.target.dataset.tab === 'threshold') doThreshold();
+});
+
+// ============================================================
+// TAB 1: LOOKUP
+// ============================================================
+
+function doLookup() {
+  const n = parseInt(document.getElementById('lookup-n').value) || 0;
+  const s = getStats(n);
+  const prevS = n > 0 ? getStats(n - 1) : null;
+  const nextS = n < TOTAL_SQUIDS ? getStats(n + 1) : null;
+
+  let html = '';
+
+  // Core stats
+  html += '<h3>Core Stats</h3>';
+  html += `<div class="stat"><span class="label">Payout table value</span><span class="value">${fmt(s.payout)}</span></div>`;
+  html += `<div class="stat"><span class="label">Multiplier tier</span><span class="value">${MULT_LABELS[Math.min(n,8)] || '—'}</span></div>`;
+  html += `<div class="stat"><span class="label">Squids left for ${OTHER_PLAYERS} opponents</span><span class="value">${s.remaining}</span></div>`;
+  html += `<div class="stat"><span class="label">Guaranteed opponents at 0</span><span class="value">${s.guaranteedZeros}</span></div>`;
+  html += `<div class="stat"><span class="label">Mean opponents at 0</span><span class="value">${s.meanZeros.toFixed(2)}</span></div>`;
+
+  // Earnings
+  html += '<h3>Expected Earnings</h3>';
+  html += `<div class="stat"><span class="label">Mean earning</span><span class="value big">${fmt(s.meanEarning)}</span></div>`;
+  html += `<div class="stat"><span class="label">Median earning</span><span class="value">${fmt(s.median)}</span></div>`;
+  html += `<div class="stat"><span class="label">Std deviation</span><span class="value">${fmt(s.std)}</span></div>`;
+  if (n > 0) html += `<div class="stat"><span class="label">Value per squid</span><span class="value" style="color:var(--yellow)">${fmt(s.valPerSquid)}</span></div>`;
+
+  // Risk profile
+  html += '<h3>Risk Profile</h3>';
+  html += `<div class="stat"><span class="label">Worst case (5th %)</span><span class="value">${fmt(s.p5)}</span></div>`;
+  html += `<div class="stat"><span class="label">25th percentile</span><span class="value">${fmt(s.p25)}</span></div>`;
+  html += `<div class="stat"><span class="label">75th percentile</span><span class="value">${fmt(s.p75)}</span></div>`;
+  html += `<div class="stat"><span class="label">Best case (95th %)</span><span class="value">${fmt(s.p95)}</span></div>`;
+  html += `<div class="stat"><span class="label">Floor / Ceiling</span><span class="value">${fmt(s.minE)} / ${fmt(s.maxE)}</span></div>`;
+
+  // Marginal value
+  if (prevS) {
+    const marg = s.meanEarning - prevS.meanEarning;
+    const faceMarg = getMarginal(n);
+    const boost = faceMarg > 0 ? (marg / faceMarg).toFixed(1) : '—';
+    html += `<h3>Marginal Value of Squid #${n}</h3>`;
+    html += `<div class="stat"><span class="label">Marginal value (${n-1}→${n})</span><span class="value" style="color:var(--magenta)">${fmt(marg)}</span></div>`;
+    html += `<div class="stat"><span class="label">Face marginal (table only)</span><span class="value">${fmt(faceMarg)}</span></div>`;
+    html += `<div class="stat"><span class="label">Multiplayer boost</span><span class="value">${boost}x</span></div>`;
+  }
+
+  // Next squid preview
+  if (nextS) {
+    const nextMarg = nextS.meanEarning - s.meanEarning;
+    const nextFace = getMarginal(n + 1);
+    const isThresh = [3, 5, 7].includes(n + 1);
+    html += `<h3>If You Get 1 More → ${n + 1} squids</h3>`;
+    html += `<div class="stat"><span class="label">New expected earning</span><span class="value">${fmt(nextS.meanEarning)}</span></div>`;
+    html += `<div class="stat"><span class="label">Gain from next squid</span><span class="value big">${fmt(nextMarg)}</span></div>`;
+    html += `<div class="stat"><span class="label">Face value of next</span><span class="value">${fmt(nextFace)}</span></div>`;
+    if (isThresh) html += `<p style="color:var(--yellow);margin-top:6px;font-size:0.85rem">⚡ MULTIPLIER THRESHOLD — huge jump!</p>`;
+  }
+
+  // Opponent distribution
+  html += '<h3>Opponent Distribution</h3>';
+  const maxProb = Math.max(...s.zeroDist.map(d => d.prob));
+  for (const d of s.zeroDist) {
+    if (d.prob < 0.0001) continue;
+    const w = maxProb > 0 ? (d.prob / maxProb * 100) : 0;
+    html += `<div class="bar-container">
+      <span class="bar-label">${d.zeros} at zero</span>
+      <div class="bar-bg"><div class="bar-fill" style="width:${w}%"></div></div>
+      <span class="bar-pct">${pct(d.prob)}</span>
+      <span class="bar-earn">${fmt(d.earning)}</span>
+    </div>`;
+  }
+
+  // Old vs new
+  const oldEarn = getPayout(n, OLD_PAYOUTS) * s.meanZeros;
+  const diff = s.meanEarning - oldEarn;
+  if (diff > 0) {
+    html += `<p style="color:var(--dim);font-size:0.78rem;margin-top:12px">Old multipliers earning: ${fmt(oldEarn)} (you gain ${fmt(diff)} from new rules)</p>`;
+  }
+
+  document.getElementById('lookup-result').innerHTML = html;
+}
+
+// ============================================================
+// TAB 2: COMPARE
+// ============================================================
+
+function doCompare() {
+  const a = parseInt(document.getElementById('cmp-a').value) || 0;
+  const b = parseInt(document.getElementById('cmp-b').value) || 0;
+  const sa = getStats(a);
+  const sb = getStats(b);
+
+  const rows = [
+    ['Payout table', fmt(sa.payout), fmt(sb.payout)],
+    ['Remaining for opp', sa.remaining, sb.remaining],
+    ['Guaranteed 0s', sa.guaranteedZeros, sb.guaranteedZeros],
+    ['Mean opp at 0', sa.meanZeros.toFixed(2), sb.meanZeros.toFixed(2)],
+    ['—', '', ''],
+    ['Mean earning', fmt(sa.meanEarning), fmt(sb.meanEarning), fmt(sb.meanEarning - sa.meanEarning)],
+    ['Median earning', fmt(sa.median), fmt(sb.median), fmt(sb.median - sa.median)],
+    ['Value/squid', a > 0 ? fmt(sa.valPerSquid) : 'N/A', b > 0 ? fmt(sb.valPerSquid) : 'N/A'],
+    ['—', '', ''],
+    ['Worst (5th%)', fmt(sa.p5), fmt(sb.p5), fmt(sb.p5 - sa.p5)],
+    ['Best (95th%)', fmt(sa.p95), fmt(sb.p95), fmt(sb.p95 - sa.p95)],
+    ['Floor', fmt(sa.minE), fmt(sb.minE), fmt(sb.minE - sa.minE)],
+    ['Ceiling', fmt(sa.maxE), fmt(sb.maxE), fmt(sb.maxE - sa.maxE)],
+  ];
+
+  let html = `<table class="rtable"><tr><th>Metric</th><th class="num">${a} squid${a!==1?'s':''}</th><th class="num">${b} squid${b!==1?'s':''}</th><th class="num">Diff</th></tr>`;
+  for (const r of rows) {
+    if (r[0] === '—') { html += '<tr><td colspan="4" style="border:none;height:8px"></td></tr>'; continue; }
+    html += `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]||''}</td></tr>`;
+  }
+  html += '</table>';
+
+  const totalDiff = sb.meanEarning - sa.meanEarning;
+  html += `<p style="margin-top:16px;font-size:0.9rem">Going from <strong>${a}→${b}</strong> squids is worth <span style="color:var(--green);font-weight:bold">${fmt(totalDiff)}</span> in expected earning.</p>`;
+
+  document.getElementById('compare-result').innerHTML = html;
+}
+
+// ============================================================
+// TAB 3: EXACT GAME
+// ============================================================
+
+function doExact() {
+  const you = parseInt(document.getElementById('exact-you').value) || 0;
+  const oppInputs = document.querySelectorAll('.opp-input');
+  const opps = Array.from(oppInputs).map(i => parseInt(i.value) || 0);
+  const oppZeros = opps.filter(x => x === 0).length;
+  const yourPay = getPayout(you);
+  const earning = yourPay * oppZeros;
+  const total = you + opps.reduce((a, b) => a + b, 0);
+
+  let html = '<h3>Game State</h3>';
+  html += `<div class="stat"><span class="label">Your squids</span><span class="value">${you} → ${fmt(yourPay)} payout</span></div>`;
+  html += `<div class="stat"><span class="label">Total squids in game</span><span class="value">${total}${total !== TOTAL_SQUIDS ? ` (expected ${TOTAL_SQUIDS})` : ''}</span></div>`;
+
+  html += '<h3>Opponents</h3>';
+  const sorted = [...opps].sort((a, b) => b - a);
+  for (let i = 0; i < sorted.length; i++) {
+    const o = sorted[i];
+    const status = o === 0
+      ? `<span style="color:var(--red);font-weight:bold">PAYS YOU ${fmt(yourPay)}</span>`
+      : `<span style="color:var(--dim)">has ${o} squid${o!==1?'s':''}</span>`;
+    html += `<div class="stat"><span class="label">Opp ${i + 1}: ${o} squids</span><span class="value">${status}</span></div>`;
+  }
+
+  html += '<h3>Your Earning</h3>';
+  html += `<div class="stat"><span class="label">Opponents at 0</span><span class="value" style="font-weight:bold">${oppZeros}</span></div>`;
+  html += `<div class="stat"><span class="label">Calculation</span><span class="value">${fmt(yourPay)} × ${oppZeros}</span></div>`;
+  html += `<div class="stat"><span class="label">Total earning</span><span class="value big">${fmt(earning)}</span></div>`;
+
+  const oldEarn = getPayout(you, OLD_PAYOUTS) * oppZeros;
+  if (earning - oldEarn > 0) {
+    html += `<p style="color:var(--dim);font-size:0.78rem;margin-top:8px">Old rules: ${fmt(oldEarn)} (new rules give you +${fmt(earning - oldEarn)})</p>`;
+  }
+
+  document.getElementById('exact-result').innerHTML = html;
+}
+
+// ============================================================
+// TAB 4: REFERENCE TABLE
+// ============================================================
+
+function doTable() {
+  let html = `<table class="rtable">
+    <tr><th>Squids</th><th class="num">Payout</th><th class="num">Face Marg.</th><th class="num">Mean 0s</th>
+    <th class="num">Earning</th><th class="num">MP Marginal</th><th class="num">$/Squid</th><th class="num">Boost</th></tr>`;
+
+  let prevEarn = 0;
+  for (let x = 0; x <= 9; x++) {
+    const s = getStats(x);
+    const faceMarg = getMarginal(x);
+    const mpMarg = s.meanEarning - prevEarn;
+    const boost = faceMarg > 0 ? (mpMarg / faceMarg).toFixed(1) + 'x' : '—';
+    const isThresh = [3, 5, 7].includes(x);
+    const cls = isThresh ? ' thresh' : '';
+
+    html += `<tr>
+      <td${isThresh ? ' style="font-weight:bold"' : ''}>${x}${isThresh ? ' ⚡' : ''}</td>
+      <td class="num">${fmt(s.payout)}</td>
+      <td class="num">${x > 0 ? fmt(faceMarg) : '—'}</td>
+      <td class="num">${s.meanZeros.toFixed(2)}</td>
+      <td class="num highlight">${fmt(s.meanEarning)}</td>
+      <td class="num${cls}">${x > 0 ? fmt(mpMarg) : '—'}</td>
+      <td class="num">${x > 0 ? fmt(s.valPerSquid) : '—'}</td>
+      <td class="num">${x > 0 ? boost : '—'}</td>
+    </tr>`;
+
+    prevEarn = s.meanEarning;
+  }
+  html += '</table>';
+
+  html += '<h3 style="margin-top:20px">New vs Old Multipliers</h3>';
+  html += `<table class="rtable">
+    <tr><th>Squids</th><th class="num">New Earning</th><th class="num">Old Earning</th><th class="num">Diff</th><th class="num">% Better</th></tr>`;
+  for (let x = 0; x <= 9; x++) {
+    const s = getStats(x);
+    const newE = s.meanEarning;
+    const oldE = getPayout(x, OLD_PAYOUTS) * s.meanZeros;
+    const diff = newE - oldE;
+    const pctBetter = oldE > 0 ? ((diff / oldE) * 100).toFixed(1) + '%' : '—';
+    html += `<tr><td>${x}</td><td class="num">${fmt(newE)}</td><td class="num">${fmt(oldE)}</td>
+      <td class="num${diff > 0 ? ' highlight' : ''}">${diff > 0 ? '+' : ''}${fmt(diff)}</td>
+      <td class="num">${pctBetter}</td></tr>`;
+  }
+  html += '</table>';
+
+  document.getElementById('table-result').innerHTML = html;
+}
+
+// ============================================================
+// TAB 5: THRESHOLDS
+// ============================================================
+
+function doThreshold() {
+  const thresholds = [
+    { before: 2, after: 3, label: '2x Multiplier', desc: 'At 3 squids' },
+    { before: 4, after: 5, label: '4x Multiplier', desc: 'At 5 squids (was 3x)' },
+    { before: 6, after: 7, label: '6x Multiplier', desc: 'At 7 squids (was 4x)' },
+  ];
+
+  let html = '';
+  for (const t of thresholds) {
+    const sb = getStats(t.before);
+    const sa = getStats(t.after);
+    const jump = sa.meanEarning - sb.meanEarning;
+    const faceJump = getPayout(t.after) - getPayout(t.before);
+    const pctInc = sb.meanEarning > 0 ? ((jump / sb.meanEarning) * 100).toFixed(0) : '—';
+    const amp = faceJump > 0 ? (jump / faceJump).toFixed(1) : '—';
+
+    html += `<div class="thresh-card">
+      <h3 style="color:var(--yellow);margin-top:0">${t.label} — ${t.desc}</h3>
+      <div class="stat"><span class="label">Before (${t.before} squids)</span><span class="value">${fmt(sb.meanEarning)}</span></div>
+      <div class="stat"><span class="label">After (${t.after} squids)</span><span class="value">${fmt(sa.meanEarning)}</span></div>
+      <div class="stat"><span class="label">Jump</span><span class="value jump">+${fmt(jump)} (${pctInc}% increase)</span></div>
+      <div class="stat"><span class="label">Face value jump (table only)</span><span class="value">${fmt(faceJump)}</span></div>
+      <div class="stat"><span class="label">Multiplayer amplification</span><span class="value">${amp}x</span></div>
+    </div>`;
+  }
+
+  // Double-dip effect
+  html += '<h3 style="margin-top:20px">The Double-Dip Effect</h3>';
+  html += '<p style="color:var(--dim);font-size:0.8rem;margin-bottom:8px">Each squid you gain benefits you twice: higher payout + more opponents at zero (scarcity).</p>';
+  html += `<table class="rtable"><tr><th>Squid #</th><th class="num">Total Marginal</th><th class="num">From Payout ↑</th><th class="num">From Scarcity ↑</th><th class="num">Scarcity %</th></tr>`;
+
+  let prevPay = 0, prevZeros = 0, prevEarn = 0;
+  for (let x = 0; x <= 9; x++) {
+    const s = getStats(x);
+    if (x > 0) {
+      const totalMarg = s.meanEarning - prevEarn;
+      const deltaP = s.payout - prevPay;
+      const deltaZ = s.meanZeros - prevZeros;
+      let fromPayout = deltaP * prevZeros;
+      let fromScarcity = prevPay * deltaZ;
+      const interaction = deltaP * deltaZ;
+      const denom = fromPayout + fromScarcity + 0.001;
+      fromPayout += interaction * (fromPayout / denom);
+      fromScarcity += interaction * (fromScarcity / denom);
+      const scarcityPct = totalMarg > 0 ? ((fromScarcity / totalMarg) * 100).toFixed(1) : '0';
+
+      html += `<tr><td>${x}</td><td class="num">${fmt(totalMarg)}</td>
+        <td class="num">${fmt(fromPayout)}</td><td class="num">${fmt(fromScarcity)}</td>
+        <td class="num">${scarcityPct}%</td></tr>`;
+    }
+    prevPay = s.payout;
+    prevZeros = s.meanZeros;
+    prevEarn = s.meanEarning;
+  }
+  html += '</table>';
+
+  document.getElementById('threshold-result').innerHTML = html;
+}
+
+// ============================================================
+// TAB 6: PROFIT
+// ============================================================
+
+function doProfit() {
+  const cost = parseInt(document.getElementById('profit-cost').value) || 0;
+
+  let html = '<h3>Profitability by Squid Count</h3>';
+  html += `<table class="rtable"><tr><th>Squids</th><th class="num">Total Cost</th><th class="num">Expected</th><th class="num">Profit</th><th class="num">ROI</th><th>Verdict</th></tr>`;
+
+  for (let x = 0; x <= 9; x++) {
+    const s = getStats(x);
+    const totalCost = cost * x;
+    const profit = s.meanEarning - totalCost;
+    const roi = totalCost > 0 ? ((profit / totalCost) * 100).toFixed(0) + '%' : '—';
+
+    let verdict, cls;
+    if (x === 0) { verdict = '—'; cls = ''; }
+    else if (profit > 0) { verdict = badge('YES', 'green'); cls = 'highlight'; }
+    else if (profit > -totalCost * 0.1) { verdict = badge('MARGINAL', 'yellow'); cls = ''; }
+    else { verdict = badge('NO', 'red'); cls = 'neg'; }
+
+    html += `<tr><td>${x}</td><td class="num">${fmt(totalCost)}</td><td class="num">${fmt(s.meanEarning)}</td>
+      <td class="num ${cls}">${fmt(profit)}</td><td class="num">${roi}</td><td>${verdict}</td></tr>`;
+  }
+  html += '</table>';
+
+  // Marginal analysis
+  html += `<h3>Marginal Analysis — Is the Nth squid worth ${fmt(cost)}?</h3>`;
+  html += `<table class="rtable"><tr><th>Squid #</th><th class="num">MP Marginal</th><th class="num">Cost</th><th class="num">Net</th><th>Worth it?</th></tr>`;
+  let prevEarn = 0;
+  for (let x = 1; x <= 9; x++) {
+    const s = getStats(x);
+    const marg = s.meanEarning - prevEarn;
+    const net = marg - cost;
+    const cls = net >= 0 ? 'highlight' : 'neg';
+    const v = net >= 0 ? badge('✓ YES', 'green') : badge('✗ NO', 'red');
+    html += `<tr><td>${x}</td><td class="num">${fmt(marg)}</td><td class="num">${fmt(cost)}</td>
+      <td class="num ${cls}">${fmt(net)}</td><td>${v}</td></tr>`;
+    prevEarn = s.meanEarning;
+  }
+  html += '</table>';
+
+  document.getElementById('profit-result').innerHTML = html;
+}
+
+// ============================================================
+// TAB 7: CUSTOM GAME
+// ============================================================
+
+function doCustom() {
+  const np = parseInt(document.getElementById('custom-players').value) || 9;
+  const ts = parseInt(document.getElementById('custom-squids').value) || 12;
+  const op = np - 1;
+
+  let html = `<p style="color:var(--dim);font-size:0.8rem;margin-bottom:12px">${np} players, ${ts} total squids (N+${ts - np}), ${op} opponents</p>`;
+  html += `<table class="rtable">
+    <tr><th>Squids</th><th class="num">Payout</th><th class="num">Mean 0s</th>
+    <th class="num">Earning</th><th class="num">Marginal</th><th class="num">$/Squid</th><th class="num">Boost</th></tr>`;
+
+  let prevEarn = 0;
+  const maxSquids = Math.min(ts, 12);
+  for (let x = 0; x <= maxSquids; x++) {
+    const remaining = ts - x;
+    const pay = getPayout(x);
+    // Compute stats for custom game
+    let meanZeros = 0;
+    for (let z = 0; z <= op; z++) {
+      meanZeros += z * probZeroCount(z, op, remaining);
+    }
+    const meanEarning = pay * meanZeros;
+    const faceMarg = getMarginal(x);
+    const mpMarg = meanEarning - prevEarn;
+    const boost = faceMarg > 0 ? (mpMarg / faceMarg).toFixed(1) + 'x' : '—';
+    const isThresh = [3, 5, 7].includes(x);
+
+    html += `<tr>
+      <td${isThresh ? ' style="font-weight:bold;color:var(--yellow)"' : ''}>${x}${isThresh ? ' ⚡' : ''}</td>
+      <td class="num">${fmt(pay)}</td>
+      <td class="num">${meanZeros.toFixed(2)}</td>
+      <td class="num highlight">${fmt(meanEarning)}</td>
+      <td class="num">${x > 0 ? fmt(mpMarg) : '—'}</td>
+      <td class="num">${x > 0 ? fmt(meanEarning / x) : '—'}</td>
+      <td class="num">${x > 0 ? boost : '—'}</td>
+    </tr>`;
+
+    prevEarn = meanEarning;
+  }
+  html += '</table>';
+
+  document.getElementById('custom-result').innerHTML = html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+doLookup();
+</script>
+</body>
+</html>
