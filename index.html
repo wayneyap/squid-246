@@ -89,13 +89,14 @@ input:focus{outline:none;border-color:var(--accent)}
 
 <div class="header">
   <h1>Squid Game Calculator</h1>
-  <p>9 players &middot; 12 squids &middot; $5k/squid &middot; Zero-sum with penalty</p>
+  <p>9 players &middot; 12 squids &middot; $100/squid &middot; Zero-sum with penalty</p>
   <div class="payout-bar">
-    <span>1=$5k</span><span>2=$10k</span>
-    <span class="thr">3=$30k (2x)</span><span>4=$40k</span>
-    <span class="thr">5=$100k (4x)</span><span>6=$120k</span>
-    <span class="thr">7=$210k (6x)</span><span>8=$240k</span>
-    <span class="thr">9=$360k (8x)</span>
+    <span>1=$100</span><span>2=$200</span>
+    <span class="thr">3=$600 (2x)</span><span>4=$800</span>
+    <span class="thr">5=$2.0k (4x)</span><span>6=$2.4k</span>
+    <span class="thr">7=$4.2k (6x)</span><span>8=$4.8k</span>
+    <span class="thr">9=$7.2k (8x)</span><span>10=$8.0k</span>
+    <span>11=$8.8k</span><span>12=$9.6k</span>
   </div>
 </div>
 
@@ -153,7 +154,7 @@ input:focus{outline:none;border-color:var(--accent)}
       <b style="color:var(--text)">Game ends</b> when exactly 1 player has 0 squids, or after all hands.<br>
       <b style="color:var(--green)">Winners</b> (end with squids): earn payout &times; (# players at 0)<br>
       <b style="color:var(--red)">Losers</b> (end with 0 squids): pay sum of all opponents' payouts<br><br>
-      The penalty for ending at 0 is typically <b style="color:var(--red)">$80k-$150k</b>.
+      The penalty for ending at 0 is typically <b style="color:var(--red)">$1.6k-$3.0k</b>.
       The first squid is enormously valuable — it's about avoiding ruin.
     </p>
   </div>
@@ -168,13 +169,13 @@ input:focus{outline:none;border-color:var(--accent)}
     </p>
     <table class="ref-table">
       <tr><th>Your Sq</th><th class="num">Avg Value</th><th class="num">Range</th><th>Key Insight</th></tr>
-      <tr><td>0</td><td class="num pos">$71k</td><td class="num">$65k-$77k</td><td>Avoiding $90k+ penalty is huge</td></tr>
-      <tr><td>1</td><td class="num pos">$35k</td><td class="num">$35k</td><td>Escaped zero, building toward 2x</td></tr>
-      <tr><td class="thr">2</td><td class="num pos">$62k</td><td class="num">$55k-$69k</td><td class="thr">One from 2x threshold</td></tr>
-      <tr><td>3</td><td class="num pos">$101k</td><td class="num">$100k-$103k</td><td>At 2x, building toward 4x</td></tr>
-      <tr><td class="thr">4</td><td class="num pos">$208k</td><td class="num">$178k-$260k</td><td class="thr">One from 4x — huge jump</td></tr>
-      <tr><td>5</td><td class="num pos">$192k</td><td class="num">$192k</td><td>At 4x, chasing 6x jackpot</td></tr>
-      <tr><td class="thr">6</td><td class="num pos">$412k</td><td class="num">$376k-$440k</td><td class="thr">One from 6x — THE JACKPOT</td></tr>
+      <tr><td>0</td><td class="num pos">$1.4k</td><td class="num">$1.3k-$1.5k</td><td>Avoiding $1.8k+ penalty is huge</td></tr>
+      <tr><td>1</td><td class="num pos">$700</td><td class="num">$700</td><td>Escaped zero, building toward 2x</td></tr>
+      <tr><td class="thr">2</td><td class="num pos">$1.2k</td><td class="num">$1.1k-$1.4k</td><td class="thr">One from 2x threshold</td></tr>
+      <tr><td>3</td><td class="num pos">$2.0k</td><td class="num">$2.0k-$2.1k</td><td>At 2x, building toward 4x</td></tr>
+      <tr><td class="thr">4</td><td class="num pos">$4.2k</td><td class="num">$3.6k-$5.2k</td><td class="thr">One from 4x — huge jump</td></tr>
+      <tr><td>5</td><td class="num pos">$3.8k</td><td class="num">$3.8k</td><td>At 4x, chasing 6x jackpot</td></tr>
+      <tr><td class="thr">6</td><td class="num pos">$8.2k</td><td class="num">$7.5k-$8.8k</td><td class="thr">One from 6x — THE JACKPOT</td></tr>
     </table>
   </div>
 
@@ -191,10 +192,10 @@ input:focus{outline:none;border-color:var(--accent)}
   <div class="card">
     <h2>Key Rules</h2>
     <div class="rule"><b>1.</b> Game ends when exactly <b>1 player has 0 squids</b> (early termination) or after all hands</div>
-    <div class="rule"><b>2.</b> At 0 squids, your baseline EV is <b style="color:var(--red)">NEGATIVE</b> — the first squid is worth $65-77k because it saves you from the $90k+ loser penalty</div>
+    <div class="rule"><b>2.</b> At 0 squids, your baseline EV is <b style="color:var(--red)">NEGATIVE</b> — the first squid is worth $1.3k-$1.5k because it saves you from the $1.8k+ loser penalty</div>
     <div class="rule"><b>3.</b> Threshold squids (&rarr;3, &rarr;5, &rarr;7) are <b>2-3x more valuable</b> than non-threshold squids</div>
     <div class="rule"><b>4.</b> Squid value <b>increases</b> as the game progresses — fewer hands means each matters more</div>
-    <div class="rule"><b>5.</b> At 6 squids late game, a single hand is worth <b style="color:var(--green)">$376k-$440k</b></div>
+    <div class="rule"><b>5.</b> At 6 squids late game, a single hand is worth <b style="color:var(--green)">$7.5k-$8.8k</b></div>
     <div class="rule"><b>6.</b> Opponent concentration helps — squids on few opponents means more at 0 means more payers</div>
   </div>
 
@@ -202,12 +203,12 @@ input:focus{outline:none;border-color:var(--accent)}
     <h2>Zero-Squid Penalty</h2>
     <table class="ref-table">
       <tr><th>#</th><th>Phase</th><th>Remain</th><th class="num">P(end@0)</th><th class="num">Avg Penalty</th><th class="num">Hand Value</th><th class="num">Baseline</th></tr>
-      <tr><td>1</td><td>EARLY</td><td>7</td><td class="num">44.0%</td><td class="num neg">$102k</td><td class="num pos">$70k</td><td class="num neg">-$34k</td></tr>
-      <tr><td>4</td><td>EARLY</td><td>6</td><td class="num">49.5%</td><td class="num neg">$89k</td><td class="num pos">$65k</td><td class="num neg">-$36k</td></tr>
-      <tr><td>6</td><td>MID</td><td>5</td><td class="num">55.5%</td><td class="num neg">$98k</td><td class="num pos">$77k</td><td class="num neg">-$47k</td></tr>
+      <tr><td>1</td><td>EARLY</td><td>7</td><td class="num">44.0%</td><td class="num neg">$2.0k</td><td class="num pos">$1.4k</td><td class="num neg">-$675</td></tr>
+      <tr><td>4</td><td>EARLY</td><td>6</td><td class="num">49.5%</td><td class="num neg">$1.8k</td><td class="num pos">$1.3k</td><td class="num neg">-$711</td></tr>
+      <tr><td>6</td><td>MID</td><td>5</td><td class="num">55.5%</td><td class="num neg">$2.0k</td><td class="num pos">$1.5k</td><td class="num neg">-$940</td></tr>
     </table>
     <p style="font-size:0.78rem;color:var(--dim);margin-top:8px">
-      At 0 squids, there's a 44-56% chance of ending at 0 and paying the $89-102k penalty. Your baseline EV is deeply negative.
+      At 0 squids, there's a 44-56% chance of ending at 0 and paying the $1.8k-$2.0k penalty. Your baseline EV is deeply negative.
     </p>
   </div>
 </div>
@@ -218,11 +219,11 @@ input:focus{outline:none;border-color:var(--accent)}
 // ═══════════════════════════════════════════════
 // GAME CONSTANTS
 // ═══════════════════════════════════════════════
-const PAYOUTS = [0, 5000, 10000, 30000, 40000, 100000, 120000, 210000, 240000, 360000];
+const PAYOUTS = [0, 100, 200, 600, 800, 2000, 2400, 4200, 4800, 7200, 8000, 8800, 9600];
 const N_SIMS = 200000;
 const TOTAL_SQUIDS = 12;
 
-function getPayout(n) { return PAYOUTS[Math.min(n, 9)]; }
+function getPayout(n) { return PAYOUTS[Math.min(n, 12)]; }
 
 function fmt(n) {
   if (n < 0) return '-$' + Math.abs(Math.round(n)).toLocaleString();
@@ -421,11 +422,11 @@ function renderResults(r, mySq, opp, remain, sqPerHand) {
   const valueClass = r.value >= 0 ? 'pos' : 'neg';
 
   let interp = '';
-  if (r.value >= 300000) interp = 'Massive value — fight for everything';
-  else if (r.value >= 150000) interp = 'Very high value — this hand matters enormously';
-  else if (r.value >= 80000) interp = 'High value — worth competing hard for';
-  else if (r.value >= 40000) interp = 'Solid value — meaningful hand';
-  else if (r.value >= 15000) interp = 'Moderate value — still worth playing';
+  if (r.value >= 6000) interp = 'Massive value — fight for everything';
+  else if (r.value >= 3000) interp = 'Very high value — this hand matters enormously';
+  else if (r.value >= 1600) interp = 'High value — worth competing hard for';
+  else if (r.value >= 800) interp = 'Solid value — meaningful hand';
+  else if (r.value >= 300) interp = 'Moderate value — still worth playing';
   else interp = 'Lower value — but every bit counts';
 
   let html = '';
@@ -485,29 +486,29 @@ function switchTab(id) {
 }
 
 // ═══════════════════════════════════════════════
-// REFERENCE DATA (from v3 Python simulation with early termination)
+// REFERENCE DATA (from v3 Python simulation with early termination, scaled to $100 base)
 // ═══════════════════════════════════════════════
 const SCENARIOS = [
-  {id: 1, phase:'EARLY', you:0, opp:'3,1,1,0,0,0,0,0', left:7, value:69973, baseline:-33736},
-  {id: 2, phase:'EARLY', you:2, opp:'1,1,1,0,0,0,0,0', left:7, value:61685, baseline:59624},
-  {id: 3, phase:'EARLY', you:1, opp:'2,1,1,0,0,0,0,0', left:7, value:35496, baseline:28873},
-  {id: 4, phase:'EARLY', you:0, opp:'2,2,1,1,0,0,0,0', left:6, value:65175, baseline:-35569},
-  {id: 5, phase:'EARLY', you:3, opp:'1,1,1,0,0,0,0,0', left:6, value:99503, baseline:114464},
-  {id: 6, phase:'MID',   you:0, opp:'3,2,1,1,0,0,0,0', left:5, value:77400, baseline:-46993},
-  {id: 7, phase:'MID',   you:2, opp:'2,1,1,1,0,0,0,0', left:5, value:55048, baseline:48608},
-  {id: 8, phase:'MID',   you:2, opp:'3,1,1,0,0,0,0,0', left:5, value:68593, baseline:60845},
-  {id: 9, phase:'MID',   you:4, opp:'1,1,1,0,0,0,0,0', left:5, value:177827, baseline:202849},
-  {id:10, phase:'MID',   you:3, opp:'2,1,1,0,0,0,0,0', left:5, value:102647, baseline:117997},
-  {id:11, phase:'MID',   you:2, opp:'2,2,1,1,0,0,0,0', left:4, value:58791, baseline:48615},
-  {id:12, phase:'MID',   you:4, opp:'2,1,1,0,0,0,0,0', left:4, value:201240, baseline:209199},
-  {id:13, phase:'MID',   you:5, opp:'1,1,1,0,0,0,0,0', left:4, value:191552, baseline:360768},
-  {id:14, phase:'LATE',  you:4, opp:'2,1,1,1,0,0,0,0', left:3, value:184994, baseline:170909},
-  {id:15, phase:'LATE',  you:6, opp:'1,1,1,0,0,0,0,0', left:3, value:375535, baseline:531044},
-  {id:16, phase:'LATE',  you:2, opp:'3,2,1,1,0,0,0,0', left:3, value:64148, baseline:48164},
-  {id:17, phase:'LATE',  you:4, opp:'2,2,1,1,0,0,0,0', left:2, value:216697, baseline:171956},
-  {id:18, phase:'LATE',  you:6, opp:'2,1,1,0,0,0,0,0', left:2, value:439725, baseline:559433},
-  {id:19, phase:'END',   you:6, opp:'2,1,1,1,0,0,0,0', left:1, value:420014, baseline:466651},
-  {id:20, phase:'END',   you:4, opp:'3,2,1,1,0,0,0,0', left:1, value:260005, baseline:168882},
+  {id: 1, phase:'EARLY', you:0, opp:'3,1,1,0,0,0,0,0', left:7, value:1399, baseline:-675},
+  {id: 2, phase:'EARLY', you:2, opp:'1,1,1,0,0,0,0,0', left:7, value:1234, baseline:1192},
+  {id: 3, phase:'EARLY', you:1, opp:'2,1,1,0,0,0,0,0', left:7, value:710, baseline:577},
+  {id: 4, phase:'EARLY', you:0, opp:'2,2,1,1,0,0,0,0', left:6, value:1304, baseline:-711},
+  {id: 5, phase:'EARLY', you:3, opp:'1,1,1,0,0,0,0,0', left:6, value:1990, baseline:2289},
+  {id: 6, phase:'MID',   you:0, opp:'3,2,1,1,0,0,0,0', left:5, value:1548, baseline:-940},
+  {id: 7, phase:'MID',   you:2, opp:'2,1,1,1,0,0,0,0', left:5, value:1101, baseline:972},
+  {id: 8, phase:'MID',   you:2, opp:'3,1,1,0,0,0,0,0', left:5, value:1372, baseline:1217},
+  {id: 9, phase:'MID',   you:4, opp:'1,1,1,0,0,0,0,0', left:5, value:3557, baseline:4057},
+  {id:10, phase:'MID',   you:3, opp:'2,1,1,0,0,0,0,0', left:5, value:2053, baseline:2360},
+  {id:11, phase:'MID',   you:2, opp:'2,2,1,1,0,0,0,0', left:4, value:1176, baseline:972},
+  {id:12, phase:'MID',   you:4, opp:'2,1,1,0,0,0,0,0', left:4, value:4025, baseline:4184},
+  {id:13, phase:'MID',   you:5, opp:'1,1,1,0,0,0,0,0', left:4, value:3831, baseline:7215},
+  {id:14, phase:'LATE',  you:4, opp:'2,1,1,1,0,0,0,0', left:3, value:3700, baseline:3418},
+  {id:15, phase:'LATE',  you:6, opp:'1,1,1,0,0,0,0,0', left:3, value:7511, baseline:10621},
+  {id:16, phase:'LATE',  you:2, opp:'3,2,1,1,0,0,0,0', left:3, value:1283, baseline:963},
+  {id:17, phase:'LATE',  you:4, opp:'2,2,1,1,0,0,0,0', left:2, value:4334, baseline:3439},
+  {id:18, phase:'LATE',  you:6, opp:'2,1,1,0,0,0,0,0', left:2, value:8795, baseline:11189},
+  {id:19, phase:'END',   you:6, opp:'2,1,1,1,0,0,0,0', left:1, value:8400, baseline:9333},
+  {id:20, phase:'END',   you:4, opp:'3,2,1,1,0,0,0,0', left:1, value:5200, baseline:3378},
 ];
 
 function populateScenarios() {
